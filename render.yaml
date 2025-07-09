@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: whatsapp-chatbot
+    env: python
+    buildCommand: ""
+    startCommand: "python chatbot.py"
+    envVars:
+      - key: ACCESS_TOKEN
+        value: tu_token_largo
+      - key: PHONE_NUMBER_ID
+        value: tu_id_numero
