@@ -1,12 +1,19 @@
 from flask import Flask, request
+from email.message import EmailMessage
 import os
 import requests
+import smtplib
 
 app = Flask(__name__)  # <== ¡Esto es lo que gunicorn está buscando!
 
 VERIFY_TOKEN = os.environ.get("VERIFY_TOKEN")
 ACCESS_TOKEN = os.environ.get("ACCESS_TOKEN")
 PHONE_NUMBER_ID = os.environ.get("PHONE_NUMBER_ID")
+
+# Datos del correo remitente
+EMAIL_ORIGEN = os.environ.get("EMAIL_ORIGEN")         # ej. notificaciones.chatbot@gmail.com
+EMAIL_DESTINO = os.environ.get("EMAIL_DESTINO")       # tu correo personal
+EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD")     # contraseña de aplicación de Gmail
 
 @app.route("/webhook", methods=["GET"])
 def verificar():
@@ -35,7 +42,22 @@ def recibir_mensaje():
 
     return "ok", 200
 
-def enviar_mensaje(destinatario, texto):
+def enviar_alerta_correo(mensaje_error):
+    try:
+        msg = EmailMessage()
+        msg.set_content(f"⚠️ Error en tu bot de WhatsApp:\n\n{mensaje_error}")
+        msg["Subject"] = "🚨 Token de WhatsApp expirado o inválido"
+        msg["From"] = EMAIL_ORIGEN
+        msg["To"] = EMAIL_DESTINO
+
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+            smtp.login(EMAIL_ORIGEN, EMAIL_PASSWORD)
+            smtp.send_message(msg)
+            print("📧 Correo de alerta enviado correctamente.")
+    except Exception as e:
+        print("❌ Error al enviar correo:", e)
+
+ def enviar_mensaje(destinatario, texto):
     url = f"https://graph.facebook.com/v18.0/{PHONE_NUMBER_ID}/messages"
     headers = {
         "Authorization": f"Bearer {ACCESS_TOKEN}",
@@ -47,6 +69,20 @@ def enviar_mensaje(destinatario, texto):
         "type": "text",
         "text": {"body": texto}
     }
+
     r = requests.post(url, headers=headers, json=body)
-    print("📤 Código de respuesta:", r.status_code)
-    print("📝 Respuesta:", r.text)
+
+    if r.status_code == 401:
+        mensaje_error = r.json()["error"]["message"]
+        print("❗ Token inválido o expirado:", mensaje_error)
+        enviar_alerta_correo(mensaje_error)
+
+    elif r.status_code != 200:
+        print("⚠️ Otro error:", r.status_code, r.text)
+
+    else:
+        print("✅ Mensaje enviado correctamente")
+
+    return r
+
+#nclb xapx lhwl nneh
