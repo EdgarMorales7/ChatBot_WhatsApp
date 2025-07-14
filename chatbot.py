@@ -82,3 +82,5 @@ def enviar_mensaje(destinatario, texto):
         print("✅ Mensaje enviado correctamente")
 
     return r
+
+# https://graph.facebook.com/v18.0/oauth/access_token?grant_type=fb_exchange_token&client_id=770466738741969&client_secret=8fbe0cbdb1db670472ce21d96bc99e21&fb_exchange_token=EAAK8vERGItEBPCJnu5ZCHyaLxMpYPuQxBg7mmMXJWq1BA0G3pJV0WqV6VTInTz0QZA4WS63z9v2AvQFr1xZAKxSb6fMAnqSZAJlrlJlwZCeJRNxZCtoN8dddOMGDlWnjwnLu3YDTRG5VOjZAADVTA01RfY6rbmkSo97fQxJ25is3mYcqL0PpmljOzWuhnFS04FRcgSq9rOZBNLLPjhlRcsFTuFDnAW5ufLWF1IrpcJpgawZDZD
