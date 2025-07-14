@@ -38,6 +38,7 @@ def verificar():
 @app.route("/webhook", methods=["POST"])
 def recibir_mensaje():
     data = request.get_json()
+    verificar_expiracion_token()
     print("📥 Mensaje recibido:\n", data)
 
     try:
@@ -102,6 +103,23 @@ def enviar_alerta_correo(mensaje_error):
             print("📧 Correo de alerta enviado correctamente.")
     except Exception as e:
         print("❌ Error al enviar correo:", e)
+
+
+def verificar_expiracion_token():
+    try:
+        with open("token_info.json", "r") as f:
+            data = json.load(f)
+
+        fecha_expiracion = datetime.fromisoformat(data["expires_at"])
+        dias_restantes = (fecha_expiracion - datetime.utcnow()).days
+
+        if dias_restantes <= 5:  # Puedes cambiar a 3, 7, etc.
+            enviar_alerta_correo(
+                f"Tu token expirará en {dias_restantes} días ({fecha_expiracion.date()}). Por favor, renueva el token manualmente usando /renovar_token_manual"
+            )
+    except Exception as e:
+        print("❌ No se pudo verificar expiración del token:", e)
+
 
 if __name__ == "__main__":
     app.run(debug=True)
