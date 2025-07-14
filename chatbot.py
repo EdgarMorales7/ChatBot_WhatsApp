@@ -57,7 +57,7 @@ def enviar_alerta_correo(mensaje_error):
     except Exception as e:
         print("❌ Error al enviar correo:", e)
 
- def enviar_mensaje(destinatario, texto):
+def enviar_mensaje(destinatario, texto):
     url = f"https://graph.facebook.com/v18.0/{PHONE_NUMBER_ID}/messages"
     headers = {
         "Authorization": f"Bearer {ACCESS_TOKEN}",
