@@ -18,8 +18,3 @@ services:
     buildCommand: "pip install -r requirements.txt"
     startCommand: "gunicorn chatbot:app"
     autoDeploy: true
-
-cron:
-  - name: verificar-expiracion-token
-    schedule: "@daily"
-    command: "python verificar_token.py"
