@@ -1,5 +1,6 @@
 from flask import Flask, request
 from email.message import EmailMessage
+from renovar_token import renovar_token_manual
 import os
 import requests
 import smtplib
@@ -47,6 +48,16 @@ def recibir_mensaje():
         print("❌ Error procesando mensaje:", e)
 
     return "ok", 200
+
+
+@app.route("/renovar_token_manual", methods=["GET"])
+def renovar_token_endpoint():
+    try:
+        resultado = renovar_token_manual()
+        return f"✅ Token renovado. Expira el: {resultado}", 200
+    except Exception as e:
+        return f"❌ Error: {str(e)}", 500
+
 
 def enviar_mensaje(destinatario, texto):
     access_token = obtener_access_token()
