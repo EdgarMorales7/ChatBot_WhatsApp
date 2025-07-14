@@ -3,17 +3,25 @@ from email.message import EmailMessage
 import os
 import requests
 import smtplib
+import json
 
-app = Flask(__name__)  # <== ¡Esto es lo que gunicorn está buscando!
+app = Flask(__name__)  # Necesario para gunicorn
 
 VERIFY_TOKEN = os.environ.get("VERIFY_TOKEN")
-ACCESS_TOKEN = os.environ.get("ACCESS_TOKEN")
 PHONE_NUMBER_ID = os.environ.get("PHONE_NUMBER_ID")
 
-# Datos del correo remitente
-EMAIL_ORIGEN = os.environ.get("EMAIL_ORIGEN")         # ej. notificaciones.chatbot@gmail.com
-EMAIL_DESTINO = os.environ.get("EMAIL_DESTINO")       # tu correo personal
-EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD")     # contraseña de aplicación de Gmail
+EMAIL_ORIGEN = os.environ.get("EMAIL_ORIGEN")
+EMAIL_DESTINO = os.environ.get("EMAIL_DESTINO")
+EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD")
+
+def obtener_access_token():
+    try:
+        with open("token_info.json", "r") as f:
+            data = json.load(f)
+        return data["access_token"]
+    except Exception as e:
+        print("❌ No se pudo leer el token:", e)
+        return None
 
 @app.route("/webhook", methods=["GET"])
 def verificar():
@@ -34,33 +42,20 @@ def recibir_mensaje():
     try:
         mensaje = data['entry'][0]['changes'][0]['value']['messages'][0]['text']['body']
         numero = data['entry'][0]['changes'][0]['value']['messages'][0]['from']
-
         enviar_mensaje(numero, f"Eco: {mensaje}")
-
     except Exception as e:
         print("❌ Error procesando mensaje:", e)
 
     return "ok", 200
 
-def enviar_alerta_correo(mensaje_error):
-    try:
-        msg = EmailMessage()
-        msg.set_content(f"⚠️ Error en tu bot de WhatsApp:\n\n{mensaje_error}")
-        msg["Subject"] = "🚨 Token de WhatsApp expirado o inválido"
-        msg["From"] = EMAIL_ORIGEN
-        msg["To"] = EMAIL_DESTINO
-
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
-            smtp.login(EMAIL_ORIGEN, EMAIL_PASSWORD)
-            smtp.send_message(msg)
-            print("📧 Correo de alerta enviado correctamente.")
-    except Exception as e:
-        print("❌ Error al enviar correo:", e)
-
 def enviar_mensaje(destinatario, texto):
+    access_token = obtener_access_token()
+    if not access_token:
+        return
+
     url = f"https://graph.facebook.com/v18.0/{PHONE_NUMBER_ID}/messages"
     headers = {
-        "Authorization": f"Bearer {ACCESS_TOKEN}",
+        "Authorization": f"Bearer {access_token}",
         "Content-Type": "application/json"
     }
     body = {
@@ -79,10 +74,23 @@ def enviar_mensaje(destinatario, texto):
 
     elif r.status_code != 200:
         print("⚠️ Otro error:", r.status_code, r.text)
-
     else:
         print("✅ Mensaje enviado correctamente")
 
-    return r
+def enviar_alerta_correo(mensaje_error):
+    try:
+        msg = EmailMessage()
+        msg.set_content(f"⚠️ Error en tu bot de WhatsApp:\n\n{mensaje_error}")
+        msg["Subject"] = "🚨 Token de WhatsApp expirado o inválido"
+        msg["From"] = EMAIL_ORIGEN
+        msg["To"] = EMAIL_DESTINO
 
-# nclb xapx lhwl nneh
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+            smtp.login(EMAIL_ORIGEN, EMAIL_PASSWORD)
+            smtp.send_message(msg)
+            print("📧 Correo de alerta enviado correctamente.")
+    except Exception as e:
+        print("❌ Error al enviar correo:", e)
+
+if __name__ == "__main__":
+    app.run(debug=True)
