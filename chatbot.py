@@ -1,6 +1,7 @@
 from flask import Flask, request
 from email.message import EmailMessage
 from renovar_token import renovar_token_manual
+from datetime import datetime, timedelta
 import os
 import requests
 import smtplib
