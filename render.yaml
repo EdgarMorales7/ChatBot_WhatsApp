@@ -6,3 +6,11 @@ services:
     buildCommand: "pip install -r requirements.txt"  # Comando para instalar dependencias
     startCommand: "gunicorn chatbot:app"             # Comando que Render ejecuta al iniciar
     autoDeploy: true                   # Se vuelve a desplegar cada vez que haces push a GitHub
+
+
+  - type: cron
+    name: verificar-token-cron
+    env: python
+    schedule: "0 14 * * *"  # Todos los días a las 14:00 UTC (8 AM CDMX)
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python verificar_token.py"
