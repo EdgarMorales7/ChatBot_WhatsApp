@@ -1,20 +1,8 @@
-# services:
- # - type: web
-   # name: whatsapp-chatbot
-   # env: python
-   # buildCommand: ""
-   # startCommand: "python chatbot.py"
-   # envVars:
-     # - key: ACCESS_TOKEN
-     #   value: tu_token_largo
-     # - key: PHONE_NUMBER_ID
-      # value: tu_id_numero 
-
 services:
-  - type: web
-    name: whatsapp-chatbot
-    env: python
-    plan: free
-    buildCommand: "pip install -r requirements.txt"
-    startCommand: "gunicorn chatbot:app"
-    autoDeploy: true
+  - type: web                          # Es un servicio web (Flask sobre Gunicorn)
+    name: whatsapp-chatbot             # Nombre visible en Render
+    env: python                        # Tipo de entorno: Python
+    plan: free                         # Plan gratuito de Render
+    buildCommand: "pip install -r requirements.txt"  # Comando para instalar dependencias
+    startCommand: "gunicorn chatbot:app"             # Comando que Render ejecuta al iniciar
+    autoDeploy: true                   # Se vuelve a desplegar cada vez que haces push a GitHub
